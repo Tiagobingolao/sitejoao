@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ChocShop App</title>
+    
+    <!-- Configurações PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8A542C">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="logo.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --brand-chocolate: #8A542C;
+            --cream: #fdfaf8;
+            --white: #ffffff;
+            --text-dark: #3d1c10;
+            --login-green: #4CAF50;
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--cream);
+            margin: 0; padding: 0;
+            height: 100vh;
+            display: flex; flex-direction: column;
+            color: var(--text-dark);
+            overflow: hidden;
+        }
+
+        /* CABEÇALHO */
+        .app-header {
+            background: var(--white);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        .header-spacer { width: 32px; }
+
+        .app-logo-text { 
+            color: var(--brand-chocolate); 
+            font-weight: 700; 
+            font-size: 1.4rem; 
+            margin: 0; 
+            letter-spacing: -1px;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        /* BOTÃO DE LOGIN NO TOPO */
+        .login-btn-circle {
+            width: 32px;
+            height: 32px;
+            background-color: var(--login-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .login-btn-circle::before {
+            content: '';
+            position: absolute;
+            width: 8px; height: 8px;
+            background: white;
+            border-radius: 50%;
+            top: 6px;
+        }
+        .login-btn-circle::after {
+            content: '';
+            position: absolute;
+            width: 16px; height: 8px;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            bottom: 5px;
+        }
+
+        .page {
+            display: none;
+            flex: 1;
+            padding: 15px 20px;
+            overflow-y: auto;
+            padding-bottom: 100px;
+        }
+
+        .page.active { display: flex; flex-direction: column; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+
+        /* DESIGN DOS COPOS */
+        .cup-visual-container { width: 60px; height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; margin-right: 10px; }
+        .takeaway-cup { position: relative; background: rgba(255, 255, 255, 0.3); border: 1.5px solid rgba(138, 84, 44, 0.2); border-top: none; border-radius: 2px 2px 12px 12px; display: flex; align-items: flex-end; overflow: hidden; }
+        .dome-lid { width: 44px; height: 20px; background: rgba(255, 255, 255, 0.4); border: 1.5px solid rgba(150, 150, 150, 0.3); border-radius: 50px 50px 0 0; margin-bottom: -2px; z-index: 3; }
+        .cup-rim { width: 50px; height: 5px; background: rgba(220, 220, 220, 0.8); border-radius: 2px; z-index: 4; }
+        .liquid-chocolate { background: var(--brand-chocolate); width: 100%; height: 90%; }
+        .straw { position: absolute; top: -10px; right: 25px; width: 4px; height: 40px; background: var(--brand-chocolate); border-radius: 2px; z-index: 1; transform: rotate(-5deg); }
+        .large-cup .takeaway-cup { width: 42px; height: 58px; } 
+        .medium-cup .takeaway-cup { width: 36px; height: 48px; } 
+
+        .crepe-visual { width: 45px; height: 45px; background: #f3d5b5; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); position: relative; border: 1px solid #e0c0a0; margin-right: 15px;}
+        .crepe-visual::after { content: ''; position: absolute; top: 30%; left: 10%; width: 80%; height: 3px; background: var(--brand-chocolate); transform: rotate(-20deg); box-shadow: 0 8px 0 var(--brand-chocolate); }
+
+        .card, .cart-item-card { background: var(--white); margin-bottom: 12px; padding: 15px; border-radius: 18px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #eee; }
+        .add-btn { background: var(--brand-chocolate); color: white; border: none; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; font-size: 1.1rem; }
+        
+        .btn-action {
+            background-color: var(--brand-chocolate); color: white; border: none; padding: 18px; border-radius: 15px; font-weight: 700; cursor: pointer;
+            position: relative; overflow: hidden; transition: var(--transition); animation: pulse 2.5s infinite;
+        }
+        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; animation: none; }
+        .btn-action::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent); animation: shine 3s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+
+        .delete-btn { background: none; border: none; color: #e74c3c; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+        .input-rect { width: 100%; padding: 18px; margin-bottom: 15px; border: 2px solid #f0f0f0; border-radius: 12px; box-sizing: border-box; outline: none; font-size: 1rem; background: #fafafa; text-align: center; }
+
+        /* BARRA INFERIOR */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--white); height: 75px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #eee; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-item { color: #ccc; text-decoration: none; font-size: 0.5rem; display: flex; flex-direction: column; align-items: center; border: none; background: none; flex: 1; cursor: pointer; position: relative; }
+        .nav-item.active { color: var(--brand-chocolate); font-weight: 600; }
+        .nav-icon { font-size: 1.2rem; margin-bottom: 2px; }
+        .cart-badge { position: absolute; top: 0; right: 15%; background: #e74c3c; color: white; font-size: 0.55rem; width: 14px; height: 14px; border-radius: 50%; display: none; align-items: center; justify-content: center; border: 2px solid white; font-weight: bold; }
+
+        /* PAGAMENTO */
+        .payment-card { cursor: pointer; justify-content: center; font-weight: 600; height: 50px; background: white; border: 1px solid #eee; border-radius: 15px; margin-bottom: 10px; display: flex; align-items: center; width: 100%; }
+        .payment-card.selected { border: 2px solid var(--brand-chocolate); color: var(--brand-chocolate); background: #fffcf9; }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="header-spacer"></div>
+        <h1 class="app-logo-text">CHOCSHOP</h1>
+        <button class="login-btn-circle" onclick="changePage('page-login', document.getElementById('nav-login'))"></button>
+    </header>
+
+    <!-- 1: INÍCIO -->
+    <main id="page-home" class="page active">
+        <div style="text-align: center; margin-top: 15px;">
+            <h2 style="color: var(--brand-chocolate); margin-bottom: 5px;">Olá, Bem-vindo!</h2>
+            <p style="margin-top: 0;">Sente o derreter em cada gole.</p>
+
+            <div style="background: white; padding: 25px; border-radius: 20px; margin-top: 20px; border: 1px solid #eee;">
+                <p style="font-weight: 600;">Destaque do Dia 🍫</p>
+                <p style="font-size: 0.9rem; color: #666;">Aproveita o melhor chocolate quente na tua App!</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- 2: PERFIL / LOGIN -->
+    <main id="page-login" class="page">
+        <div style="background: white; padding: 20px 20px; border-radius: 25px; text-align: center;">
+            <h2 style="color: var(--brand-chocolate); margin-top: 0;">Área de Cliente</h2>
+            <input type="email" id="userEmail" class="input-rect" placeholder="Email" onclick="this.value='Naosei@gmail.com'">
+            <input type="password" id="userPass" class="input-rect" placeholder="Palavra-passe" onclick="this.value='naosei123'">
+            <button class="btn-action" style="width: 100%;" onclick="handleLogin()">ENTRAR</button>
+            <p onclick="handleRecovery()" style="margin-top: 15px; color: #8A542C; font-size: 0.8rem; font-weight: 600; cursor: pointer;">Recuperar acesso</p>
+            <p onclick="handleLogout()" style="margin-top: 10px; color: #8A542C; font-size: 0.8rem; font-weight: 600; cursor: pointer;">Terminar sessão</p>
+        </div>
+    </main>
+
+    <!-- 3: MENU -->
+    <main id="page-menu" class="page">
+        <h2 style="text-align: center; color: var(--brand-chocolate); margin-top: 0;">O Nosso Menu</h2>
+        <div class="card">
+            <div style="display:flex; align-items:center;"><div class="cup-visual-container large-cup"><div class="straw"></div><div class="dome-lid"></div><div class="cup-rim"></div><div class="takeaway-cup"><div class="liquid-chocolate"></div></div></div><h3 style="margin:0; font-size: 1rem;">Copo Grande</h3></div>
+            <div style="display:flex; align-items:center; gap:10px;"><span style="font-weight:700;">3.50€</span><button class="add-btn" onclick="addToCart('Copo Grande', 3.50)">🛒</button></div>
+        </div>
+        <div class="card">
+            <div style="display:flex; align-items:center;"><div class="cup-visual-container medium-cup"><div class="straw"></div><div class="dome-lid"></div><div class="cup-rim"></div><div class="takeaway-cup"><div class="liquid-chocolate"></div></div></div><h3 style="margin:0; font-size: 1rem;">Copo Médio</h3></div>
+            <div style="display:flex; align-items:center; gap:10px;"><span style="font-weight:700;">2.00€</span><button class="add-btn" onclick="addToCart('Copo Médio', 2.00)">🛒</button></div>
+        </div>
+        <div class="card">
+            <div style="display:flex; align-items:center;"><div class="crepe-visual"></div><h3 style="margin:0; font-size: 1rem;">Crepe Chocolate</h3></div>
+            <div style="display:flex; align-items:center; gap:10px;"><span style="font-weight:700;">5.50€</span><button class="add-btn" onclick="addToCart('Crepe Chocolate', 5.50)">🛒</button></div>
+        </div>
+    </main>
+
+    <!-- 4: CARRINHO -->
+    <main id="page-cart" class="page">
+        <h2 style="text-align: center; color: var(--brand-chocolate);">O Teu Carrinho</h2>
+        <div id="cart-list"></div>
+        <div id="cart-container" style="display: none;">
+            <div class="total-box" style="text-align: right; padding: 10px; font-weight: bold;">Total: <span id="cart-total-val">0.00</span>€</div>
+            <button class="btn-action" style="width: 100%;" onclick="changePage('page-data', document.getElementById('nav-data'))">FINALIZAR PEDIDO</button>
+        </div>
+        <div id="cart-empty" style="text-align: center; margin-top: 40px;"><p>O carrinho está vazio.</p></div>
+    </main>
+
+    <!-- 5: DADOS -->
+    <main id="page-data" class="page">
+        <h2 style="text-align: center; color: var(--brand-chocolate);">Teus Dados</h2>
+        <div style="background: white; padding: 25px; border-radius: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+            <input type="text" id="finalName" class="input-rect" placeholder="Nome Completo" onclick="this.value='Joaquim Silva'">
+            <input type="text" id="finalAddr" class="input-rect" placeholder="Morada de Entrega" onclick="this.value='São Manuel'">
+            <input type="number" id="finalPhone" class="input-rect" placeholder="Telemóvel" onclick="this.value='911222333'">
+            <button class="btn-action" style="width: 100%; margin-top: 10px;" onclick="changePage('page-payment', document.getElementById('nav-pay'))">IR PARA O PAGAMENTO</button>
+        </div>
+    </main>
+
+    <!-- 6: PAGAMENTO -->
+    <main id="page-payment" class="page">
+        <h2 style="text-align: center; color: var(--brand-chocolate);">Pagamento</h2>
+        <div class="payment-card" onclick="selectPay(this, 'Multibanco')">Multibanco</div>
+        <div class="payment-card" onclick="selectPay(this, 'MB WAY')">MB WAY</div>
+        <div class="payment-card" onclick="selectPay(this, 'Cartão de Crédito')">Cartão de Crédito</div>
+        <button id="f-btn" class="btn-action" style="margin-top: 30px; width: 100%; opacity: 0.5;" onclick="processPayment()">CONFIRMAR PAGAMENTO</button>
+    </main>
+
+    <nav class="bottom-nav">
+        <button id="nav-home" class="nav-item active" onclick="changePage('page-home', this)"><span class="nav-icon">🏠</span>Início</button>
+        <button id="nav-login" class="nav-item" onclick="changePage('page-login', this)"><span class="nav-icon">👤</span>Perfil</button>
+        <button id="nav-menu" class="nav-item" onclick="changePage('page-menu', this)"><span class="nav-icon">🥞</span>Menu</button>
+        <button id="nav-cart" class="nav-item" onclick="changePage('page-cart', this)"><span id="badge" class="cart-badge">0</span><span class="nav-icon">🛒</span>Carrinho</button>
+        <button id="nav-data" class="nav-item" onclick="changePage('page-data', this)"><span class="nav-icon">📋</span>Dados</button>
+        <button id="nav-pay" class="nav-item" onclick="changePage('page-payment', this)"><span class="nav-icon">💳</span>Pagar</button>
+    </nav>
+
+    <script>
+        let cart = [];
+
+        function changePage(id, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(el) { 
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
+                el.classList.add('active'); 
+            }
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('userEmail').value;
+            if(email === "Naosei@gmail.com") {
+                document.getElementById('finalName').value = "Joaquim Silva";
+                document.getElementById('finalPhone').value = "911222333";
+                alert("Olá Joaquim! Redirecionando para o menu.");
+                changePage('page-menu', document.getElementById('nav-menu'));
+            } else { alert("Utilizador não encontrado."); }
+        }
+
+        function handleRecovery() {
+            const email = document.getElementById('userEmail').value;
+            if (email.trim() === "" || !email.includes("@")) {
+                alert("Por favor, introduza um email válido primeiro.");
+            } else {
+                alert("Link de recuperação enviado para: " + email);
+            }
+        }
+
+        function handleLogout() {
+            document.getElementById('userEmail').value = "";
+            document.getElementById('userPass').value = "";
+            alert("Sessão terminada!");
+            changePage('page-home', document.getElementById('nav-home'));
+        }
+
+        function addToCart(nome, preco) {
+            cart.push({ nome, preco });
+            updateBadge();
+            renderCart();
+            alert(nome + " adicionado!");
+        }
+
+        function updateBadge() {
+            const b = document.getElementById('badge');
+            b.innerText = cart.length;
+            b.style.display = cart.length > 0 ? 'flex' : 'none';
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cart-list');
+            if (cart.length > 0) {
+                document.getElementById('cart-empty').style.display = 'none';
+                document.getElementById('cart-container').style.display = 'block';
+                list.innerHTML = ""; let t = 0;
+                cart.forEach((i, idx) => { 
+                    t += i.preco; 
+                    list.innerHTML += `<div class="cart-item-card"><div><span>${i.nome}</span><br><strong>${i.preco.toFixed(2)}€</strong></div><button class="delete-btn" onclick="deleteItem(${idx})">Eliminar</button></div>`; 
+                });
+                document.getElementById('cart-total-val').innerText = t.toFixed(2);
+            } else { 
+                document.getElementById('cart-empty').style.display = 'block'; 
+                document.getElementById('cart-container').style.display = 'none'; 
+            }
+        }
+
+        function deleteItem(idx) {
+            cart.splice(idx, 1);
+            updateBadge();
+            renderCart();
+        }
+
+        function selectPay(el, m) {
+            document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected'); 
+            document.getElementById('f-btn').style.opacity = "1";
+        }
+
+        function processPayment() {
+            const btn = document.getElementById('f-btn');
+            if (btn.style.opacity < 1) {
+                alert("Por favor, selecione um método de pagamento.");
+                return;
+            }
+            btn.innerText = "A PROCESSAR...";
+            btn.disabled = true;
+            setTimeout(() => {
+                alert("Pagamento concluído com sucesso! ChocShop agradece a sua preferência. 🍫");
+                cart = [];
+                updateBadge();
+                renderCart();
+                btn.innerText = "CONFIRMAR PAGAMENTO";
+                btn.disabled = false;
+                btn.style.opacity = "0.5";
+                changePage('page-home', document.getElementById('nav-home'));
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
